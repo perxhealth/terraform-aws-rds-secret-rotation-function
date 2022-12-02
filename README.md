@@ -1,6 +1,6 @@
 Based on https://github.com/JCapriotti/terraform-aws-rds-secret-rotation
 
-# AWS RDS Secret Rotation
+# AWS RDS Secret Rotation Function
 
 A Terraform module that creates a lambda function used for RDS rotation support.
 
