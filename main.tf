@@ -51,7 +51,7 @@ module "db_ingress" {
     {
       description              = "Secret rotation lambda"
       rule                     = "postgresql-tcp"
-      source_security_group_id = module.lambda_security_group[0].security_group_id
+      source_security_group_id = module.lambda_security_group.security_group_id
     },
   ]
 }
@@ -69,7 +69,7 @@ module "rotation_lambda" {
   memory_size   = 128
   layers        = var.rotation_lambda_layers
 
-  vpc_security_group_ids = [module.lambda_security_group[0].security_group_id]
+  vpc_security_group_ids = [module.lambda_security_group.security_group_id]
   vpc_subnet_ids         = var.rotation_lambda_subnet_ids
   attach_network_policy  = true
 
