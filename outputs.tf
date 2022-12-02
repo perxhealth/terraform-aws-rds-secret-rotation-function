@@ -6,6 +6,10 @@ output "rotation_lambda_role_name" {
   value = module.rotation_lambda.lambda_role_name
 }
 
+output "rotation_lambda_role_arn" {
+  value = module.rotation_lambda.lambda_role_arn
+}
+
 output "rotation_lambda_runtime" {
   value = local.lambda_runtime
 }
