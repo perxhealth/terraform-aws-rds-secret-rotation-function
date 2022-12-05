@@ -1,20 +1,16 @@
 locals {
-  function_name          = var.rotation_strategy == "single" ? "postgresql-single-user" : "postgresql-multiuser"
-  default_lambda_handler = "lambda_function.lambda_handler"
-  lambda_runtime         = "python3.8"
+  application_id         = var.rotation_strategy == "single" ? "arn:aws:serverlessrepo:us-east-1:297356227824:applications/SecretsManagerRDSPostgreSQLRotationSingleUser" : "arn:aws:serverlessrepo:us-east-1:297356227824:applications/SecretsManagerRDSPostgreSQLRotationMultiUser"
   name                   = "${var.name}-rotate-secret"
-
-  default_lambda_env_vars = {
-    SECRETS_MANAGER_ENDPOINT = "https://secretsmanager.${data.aws_region.current.name}.amazonaws.com"
-  }
 }
 
 data "aws_region" "current" {}
+data "aws_partition" "current" {}
+
 
 resource "aws_secretsmanager_secret_rotation" "this" {
   for_each = var.secrets
 
-  rotation_lambda_arn = module.rotation_lambda.lambda_function_arn
+  rotation_lambda_arn = aws_serverlessapplicationrepository_cloudformation_stack.postgres-rotator.outputs.RotationLambdaARN
   secret_id           = each.value.id
 
   rotation_rules {
@@ -56,83 +52,18 @@ module "db_ingress" {
   ]
 }
 
-module "rotation_lambda" {
-  source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 2.0"
-
-  function_name = local.name
-  handler       = coalesce(var.rotation_lambda_handler, local.default_lambda_handler)
-  runtime       = local.lambda_runtime
-  timeout       = 120
-  tags          = var.tags
-  publish       = true
-  memory_size   = 128
-  layers        = var.rotation_lambda_layers
-
-  vpc_security_group_ids = [module.lambda_security_group.security_group_id]
-  vpc_subnet_ids         = var.rotation_lambda_subnet_ids
-  attach_network_policy  = true
-
-  environment_variables = merge(var.rotation_lambda_env_variables, local.default_lambda_env_vars)
-
-  allowed_triggers = {
-    SecretsManager = {
-      service    = "secretsmanager"
-      source_account = var.aws_account_id
-    }
-  }
-
-  recreate_missing_package  = var.recreate_missing_package
-  role_permissions_boundary = var.role_permissions_boundary
-
-  attach_policy_jsons    = true
-  policy_jsons           = local.lambda_policies
-  number_of_policy_jsons = length(local.lambda_policies)
-
-  source_path = [
-    {
-      path             = "${path.module}/functions/${local.function_name}"
-      pip_requirements = true
-    }
+resource "aws_serverlessapplicationrepository_cloudformation_stack" "postgres-rotator" {
+  name           = "postgres-rotator"
+  application_id = local.application_id
+  capabilities = [
+    "CAPABILITY_IAM",
+    "CAPABILITY_RESOURCE_POLICY",
   ]
-}
-
-locals {
-  lambda_policies = flatten([
-    data.aws_iam_policy_document.superuser[*].json,
-    data.aws_iam_policy_document.secret.json,
-    var.rotation_lambda_policy_jsons,
-  ])
-}
-
-data "aws_iam_policy_document" "secret" {
-  statement {
-    actions = [
-      "secretsmanager:DescribeSecret",
-      "secretsmanager:GetSecretValue",
-      "secretsmanager:PutSecretValue",
-      "secretsmanager:UpdateSecretVersionStage",
-    ]
-    resources = [for s in var.secrets : s.arn]
-  }
-  statement {
-    actions = [
-      "secretsmanager:GetRandomPassword",
-    ]
-    resources = [
-      "*"
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "superuser" {
-  count = var.rotation_strategy == "single" ? 0 : 1
-  statement {
-    actions = [
-      "secretsmanager:GetSecretValue",
-    ]
-    resources = [
-      var.master_secret_arn,
-    ]
+  parameters = {
+    functionName = local.name
+    endpoint     = "secretsmanager.${data.aws_region.current.name}.${data.aws_partition.current.dns_suffix}"
+    vpcSubnetIds = var.rotation_lambda_subnet_ids
+    vpcSecurityGroupIds = [module.lambda_security_group.security_group_id]
+    superuserSecretArn = var.master_secret_arn
   }
 }
