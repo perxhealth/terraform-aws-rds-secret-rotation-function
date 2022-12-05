@@ -5,7 +5,7 @@ variable "name" {
 
 variable "secrets" {
   description = "the secrets to rotate"
-  type = list(object({arn: string, id: string, days: number}))
+  type = map(object({arn: string, id: string, days: number}))
 }
 
 variable "rotation_strategy" {
