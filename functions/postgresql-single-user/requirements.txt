@@ -1,2 +1,1 @@
-pg
-pgdb
+PyGreSQL==5.1.2
