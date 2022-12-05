@@ -92,7 +92,7 @@ module "rotation_lambda" {
   source_path = [
     {
       path             = "${path.module}/functions/${local.function_name}"
-      pip_requirements = true
+      pip_requirements = false
     }
   ]
 }
