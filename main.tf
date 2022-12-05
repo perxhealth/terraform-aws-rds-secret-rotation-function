@@ -53,7 +53,7 @@ module "db_ingress" {
 }
 
 resource "aws_serverlessapplicationrepository_cloudformation_stack" "postgres-rotator" {
-  name           = "postgres-rotator"
+  name           = "${var.name}-postgres-rotator"
   application_id = local.application_id
   capabilities = [
     "CAPABILITY_IAM",
@@ -61,9 +61,9 @@ resource "aws_serverlessapplicationrepository_cloudformation_stack" "postgres-ro
   ]
   parameters = {
     functionName = local.name
-    endpoint     = "secretsmanager.${data.aws_region.current.name}.${data.aws_partition.current.dns_suffix}"
-    vpcSubnetIds = var.rotation_lambda_subnet_ids
-    vpcSecurityGroupIds = [module.lambda_security_group.security_group_id]
+    endpoint     = "https://secretsmanager.${data.aws_region.current.name}.${data.aws_partition.current.dns_suffix}"
+    vpcSubnetIds = join(",", var.rotation_lambda_subnet_ids)
+    vpcSecurityGroupIds = module.lambda_security_group.security_group_id
     superuserSecretArn = var.master_secret_arn
   }
 }
