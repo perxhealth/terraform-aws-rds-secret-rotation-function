@@ -78,6 +78,7 @@ module "rotation_lambda" {
   allowed_triggers = {
     SecretsManager = {
       service    = "secretsmanager"
+      source_account = var.aws_account_id
     }
   }
 

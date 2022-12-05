@@ -87,3 +87,7 @@ variable "role_permissions_boundary" {
   type        = string
   default     = null
 }
+
+variable "aws_account_id" {
+  type = string
+}
