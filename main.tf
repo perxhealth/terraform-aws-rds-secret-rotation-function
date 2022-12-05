@@ -1,7 +1,7 @@
 locals {
   function_name          = var.rotation_strategy == "single" ? "postgresql-single-user" : "postgresql-multiuser"
   default_lambda_handler = "lambda_function.lambda_handler"
-  lambda_runtime         = "python3.7"
+  lambda_runtime         = "python3.8"
   name                   = "${var.name}-rotate-secret"
 
   default_lambda_env_vars = {
