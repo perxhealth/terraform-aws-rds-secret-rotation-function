@@ -14,7 +14,7 @@ data "aws_region" "current" {}
 resource "aws_secretsmanager_secret_rotation" "this" {
   for_each = var.secrets
 
-  rotation_lambda_arn = module.rotation_lambda.0.lambda_function_arn
+  rotation_lambda_arn = module.rotation_lambda.lambda_function_arn
   secret_id           = each.value.id
 
   rotation_rules {
