@@ -59,6 +59,7 @@ resource "aws_serverlessapplicationrepository_cloudformation_stack" "postgres-ro
     "CAPABILITY_IAM",
     "CAPABILITY_RESOURCE_POLICY",
   ]
+  semantic_version = var.rotation_application_version
   parameters = {
     functionName = local.name
     endpoint     = "https://secretsmanager.${data.aws_region.current.name}.${data.aws_partition.current.dns_suffix}"
