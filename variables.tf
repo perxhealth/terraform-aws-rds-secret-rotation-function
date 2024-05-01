@@ -70,6 +70,12 @@ variable "rotation_lambda_vpc_id" {
   default     = null
 }
 
+variable "rotation_application_version" {
+  description = "The semantic version that the lambda will use"
+  type        = string
+  default     = "1.1.447"
+}
+
 variable "db_security_group_id" {
   description = "The security group ID for the database. Required for secret rotation."
   type        = string
